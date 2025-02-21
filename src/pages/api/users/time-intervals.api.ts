@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
-import { buildNexthAuthOptions } from "../auth/[...nextauth].api";
+import { buildNextAuthOptions } from "../auth/[...nextauth].api";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 
@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).end();
     }
 
-    const session = await getServerSession(req, res, buildNexthAuthOptions(req, res));
+    const session = await getServerSession(req, res, buildNextAuthOptions(req, res));
      
     if(!session){
         return res.status(401).end()

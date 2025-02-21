@@ -1,14 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextApiRequest, NextApiResponse, NextPageContext } from 'next'
 import { Adapter } from 'next-auth/adapters'
 import { parseCookies, destroyCookie } from 'nookies'
 import { prisma } from '../prisma'
 
 export function PrismaAdapter(
-  req: NextApiRequest | NextPageContext['req'], 
+  req: NextApiRequest | NextPageContext['req'],
   res: NextApiResponse | NextPageContext['res'],
 ): Adapter {
   return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async createUser(user: any) {
       const { '@ignitecall:userId': userIdOnCookies } = parseCookies({ req })
 
@@ -132,6 +132,7 @@ export function PrismaAdapter(
       }
     },
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async linkAccount(account: any) {
       await prisma.account.create({
         data: {

@@ -4,35 +4,58 @@ import { CalendarBlank, Clock } from "phosphor-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
+import { api } from "@/lib/axios";
 
 const confirmFormSchema = z.object({
-    name: z.string().min(3, {message: "O nome precisa de no mínimo 3 caracteres."}),
-    email: z.string().email({message: "Digite um e-mail válido."}),
+    name: z.string().min(3, { message: "O nome precisa de no mínimo 3 caracteres." }),
+    email: z.string().email({ message: "Digite um e-mail válido." }),
     observations: z.string().nullable(),
 })
 
-type ConfirmFormSchema = z.infer<typeof confirmFormSchema>
+type ConfirmFormData = z.infer<typeof confirmFormSchema>
 
-export function ConfirmStep(){
-    const {register, handleSubmit, formState: {isSubmitting, errors}} = useForm<ConfirmFormSchema>({
+interface ConfirmStepProps {
+    schedulingDate: Date,
+    onCancelConfirmation: () => void
+}
+
+export function ConfirmStep({ schedulingDate, onCancelConfirmation }: ConfirmStepProps) {
+    const { register, handleSubmit, formState: { isSubmitting, errors } } = useForm<ConfirmFormData>({
         resolver: zodResolver(confirmFormSchema),
     })
 
-    function handleConfirmScheduling(data: ConfirmFormSchema) {
-        console.log(data)
+    const router = useRouter()
+    const username = String(router.query.username)
+
+    async function handleConfirmScheduling(data: ConfirmFormData) {
+        const { name, email, observations } = data
+
+        await api.post(`/users/${username}/schedule`, {
+            name,
+            email,
+            observations,
+            date: schedulingDate,
+        })
+
+        onCancelConfirmation()
     }
+
+    const describedDate = dayjs(schedulingDate).format('DD[ de ]MMMM[ de ]YYYY')
+    const describedTime = dayjs(schedulingDate).format('HH:mm[h]')
 
     return (
         <ConfirmForm as="form" onSubmit={handleSubmit(handleConfirmScheduling)} >
             <FormHeader>
                 <Text>
                     <CalendarBlank />
-                    22 de Setembro de 2022
+                    {describedDate}
                 </Text>
 
                 <Text>
                     <Clock />
-                    18:00h
+                    {describedTime}
                 </Text>
             </FormHeader>
 
@@ -48,7 +71,7 @@ export function ConfirmStep(){
 
             <label>
                 <Text size="sm">Endereço de e-mail</Text>
-                <TextInput onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} type="email" {...register('email')} placeholder="sodras@gmail.com"/>
+                <TextInput onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} crossOrigin={undefined} type="email" {...register('email')} placeholder="Seu e-mail" />
                 {errors.email?.message && (
                     <FormError size="sm" >
                         {errors.email.message}
@@ -62,7 +85,7 @@ export function ConfirmStep(){
             </label>
 
             <FormActions>
-                <Button type="button" variant="tertiary">Cancelar</Button>
+                <Button type="button" variant="tertiary" onClick={onCancelConfirmation} >Cancelar</Button>
                 <Button type="submit" disabled={isSubmitting} >Confirmar</Button>
             </FormActions>
 
